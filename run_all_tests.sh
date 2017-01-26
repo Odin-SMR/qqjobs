@@ -7,5 +7,5 @@ set -e
 virtualenv env
 export VIRTUAL_ENV="${PWD}/env"
 export PATH="${PWD}/env/bin:${PATH}"
-pip install -r requirements.txt
+pip install -r test-requirements.txt
 py.test --runslow --runsystem --junitxml=result.xml

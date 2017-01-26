@@ -1,0 +1,20 @@
+odinapi:
+  image: docker2.molflow.com/odin_redo/odin_api
+  ports:
+    - "127.0.0.1:5000:5000"
+  volumes:
+    - ./data/vds-data:/vds-data
+    - ./data/apriori:/var/lib/odindata/apriori
+    - ./data/vds-data/SMRhdf/Qsmr-2-1/:/odin-smr-2-1-data
+    - ./data/ptz-data/:/var/lib/odindata
+    - ./data/vds-data/OSIRIS_Level2/:/osiris-data
+    - ./data/ptz-data/ERA-Interim:/var/lib/odindata/ECMWF
+  links:
+    - postgresql
+    - level2db
+
+postgresql:
+  image: docker2.molflow.com/odin_redo/odin_db:latest
+
+level2db:
+  image: mongo

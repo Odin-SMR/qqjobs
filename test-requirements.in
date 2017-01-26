@@ -1,0 +1,6 @@
+pytest-runner
+pytest
+pylint
+coverage
+requests
+pycrypto

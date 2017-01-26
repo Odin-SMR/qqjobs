@@ -1,8 +1,11 @@
+# pylint: skip-file
 """Unittests"""
 
-from time import sleep
+from time import sleep, time
 from subprocess import check_output, Popen
+
 import pytest
+import requests
 
 
 def pytest_addoption(parser):
@@ -26,7 +29,7 @@ def call_docker_compose(cmd, root_path, args=None, wait=True):
     return popen
 
 
-@pytest.yield_fixture(scope='module')
+@pytest.yield_fixture(scope='session')
 def dockercompose():
     """Set up the full system"""
     root_path = check_output(['git', 'rev-parse', '--show-toplevel']).strip()
@@ -40,8 +43,28 @@ def dockercompose():
     args = ['--abort-on-container-exit', '--remove-orphans']
     system = call_docker_compose('up', root_path, args=args, wait=False)
 
-    # TODO: Replace with something better that checks that the system is up
-    sleep(30)
+    # Wait for webapi and database
+    max_wait = 60*5
+    start_wait = time()
+    while True:
+        exit_code = system.poll()
+        if exit_code is not None:
+            call_docker_compose('stop', root_path)
+            assert False, 'docker-compose exit code {}'.format(exit_code)
+        try:
+            r = requests.get(
+                'http://localhost:5000/rest_api/v4/freqmode_info/2010-10-01/',
+                timeout=5)
+            if r.status_code == 200:
+                break
+        except:
+            sleep(1)
+        if time() > start_wait + max_wait:
+            call_docker_compose('stop', root_path)
+            if system.poll() is None:
+                system.kill()
+                system.wait()
+            assert False, 'Could not access webapi after %d seconds' % max_wait
 
     yield system.pid
 
