@@ -1,4 +1,9 @@
 odinapi:
+  environment:
+    - PGHOST=postgresql
+    - PGDBNAME=odin
+    - PGUSER=odinop
+    - PGPASS=odinop
   image: docker2.molflow.com/odin_redo/odin_api
   ports:
     - "127.0.0.1:5000:5000"
