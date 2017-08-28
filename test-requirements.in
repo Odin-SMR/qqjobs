@@ -1,6 +1,9 @@
+-rrequirements.in
 pytest-runner
 pytest
 pylint
+pep8
+pyflakes
 coverage
 requests
 pycrypto
