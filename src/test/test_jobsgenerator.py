@@ -1,3 +1,4 @@
+# pylint: disable=W0212
 import unittest
 
 import pytest
@@ -112,9 +113,9 @@ class BaseTestAddJobs(BaseTest):
             pass
 
         self._mock_post_method = self._get_mock_post_method()
-        self._orig_post_method = qsmrjobs.AddQsmrJobs._post_job
+        self._orig_post_method = qsmrjobs.AddQsmrJobs._post_jobs
         self._orig_get_token = qsmrjobs.AddQsmrJobs.get_token
-        qsmrjobs.AddQsmrJobs._post_job = self._mock_post_method
+        qsmrjobs.AddQsmrJobs._post_jobs = self._mock_post_method
         qsmrjobs.AddQsmrJobs.get_token = mock_get_token
 
     @staticmethod
@@ -126,7 +127,7 @@ class BaseTestAddJobs(BaseTest):
         return mock_post_method
 
     def tearDown(self):
-        qsmrjobs.AddQsmrJobs._post_job = self._orig_post_method
+        qsmrjobs.AddQsmrJobs._post_jobs = self._orig_post_method
         qsmrjobs.AddQsmrJobs.get_token = self._orig_get_token
 
     @staticmethod
@@ -139,21 +140,41 @@ class TestAddJobsFromFile(BaseTestAddJobs):
 
     def test_add_jobs(self):
         """Test to add jobs from a scan id file"""
-        self._write_scanids(map(str, range(15)))
+        self._write_scanids(map(str, range(1500)))
         exit_code = qsmrjobs.main([
             PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE, '--freq-mode', '1',
             '--jobs-file', JOBS_FILE])
         self.assertEqual(exit_code, 0)
-        self.assertEqual(len(self._mock_post_method.jobs), 15)
+        self.assertEqual(len(self._mock_post_method.jobs), 2)
+        self.assertEqual(len(self._mock_post_method.jobs[0]), 1000)
+        self.assertEqual(self._mock_post_method.jobs[1][-1]['id'], '1:1499')
+
+    def test_filter_jobs(self):
+        """Test skipping of scan ids"""
+        adder = qsmrjobs.AddQsmrJobs(
+            PROJECT_NAME,
+            ODIN_PROJECT,
+            "http://localhost:5000/rest_api",
+            "adsfasreerfgtres",
+            "http://example.com",
+            "testuser",
+            "testpw")
+        scanids = map(str, range(15))
+        freqmode = 1
+        skip = 6
+        list_of_jobs = adder.filter_jobs(scanids, freqmode, skip)
+        self.assertEqual(len(list_of_jobs), 15 - skip)
 
     def test_skip(self):
         """Test skipping of scan ids in the file"""
         self._write_scanids(map(str, range(15)))
+        skip = 6
         exit_code = qsmrjobs.main([
             PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE, '--freq-mode', '1',
-            '--jobs-file', JOBS_FILE, '--skip', '6'])
+            '--jobs-file', JOBS_FILE, '--skip', str(skip)])
         self.assertEqual(exit_code, 0)
-        self.assertEqual(len(self._mock_post_method.jobs), 15-6)
+        self.assertEqual(len(self._mock_post_method.jobs), 1)
+        self.assertEqual(len(self._mock_post_method.jobs[0]), 15 - skip)
 
 
 @system
@@ -166,7 +187,8 @@ class TestAddVds(BaseTestAddJobs):
             PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE, '--freq-mode', '13',
             '--vds'])
         self.assertEqual(exit_code, 0)
-        self.assertGreater(len(self._mock_post_method.jobs), 7000)
+        self.assertEqual(len(self._mock_post_method.jobs), 15)
+        self.assertEqual(len(self._mock_post_method.jobs[0]), 1000)
 
 
 @system
@@ -179,7 +201,8 @@ class TestAddAll(BaseTestAddJobs):
             PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE, '--freq-mode', '1',
             '--all', '--end-day', '2015-01-11'])
         self.assertEqual(exit_code, 0)
-        self.assertGreater(len(self._mock_post_method.jobs), 4000)
+        self.assertEqual(len(self._mock_post_method.jobs), 5)
+        self.assertEqual(len(self._mock_post_method.jobs[0]), 1000)
 
 
 class TestRenewToken(BaseTestAddJobs):
@@ -204,7 +227,7 @@ class TestRenewToken(BaseTestAddJobs):
             PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE, '--freq-mode', '1',
             '--jobs-file', JOBS_FILE])
         self.assertEqual(exit_code, 0)
-        self.assertEqual(len(self._mock_post_method.jobs), 15)
+        self.assertEqual(len(self._mock_post_method.jobs), 1)
 
 
 class TestJobAPIFailure(BaseTestAddJobs):
@@ -223,12 +246,13 @@ class TestJobAPIFailure(BaseTestAddJobs):
 
     def test_failure(self):
         """Test exception of post of job"""
-        self._write_scanids(map(str, range(15)))
+        self._write_scanids(map(str, range(1500)))
         exit_code = qsmrjobs.main([
             PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE, '--freq-mode', '1',
             '--jobs-file', JOBS_FILE])
         self.assertEqual(exit_code, 1)
         self.assertEqual(len(self._mock_post_method.jobs), 1)
+        self.assertEqual(len(self._mock_post_method.jobs[0]), 1000)
 
 
 @system

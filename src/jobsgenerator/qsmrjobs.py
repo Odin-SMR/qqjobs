@@ -51,6 +51,10 @@ from Crypto.Cipher import AES
 
 from jobsgenerator.scanids import ScanIDs
 
+
+NUMBER_OF_JOBS_TO_POST = 1000
+
+
 CONFIG_FILE_DOCS = """The configuration file should contain these settings:
 ODIN_API_ROOT=https://example.com/odin_api
 ODIN_SECRET=<secret encryption key>
@@ -180,15 +184,11 @@ class AddQsmrJobs(object):
                 ))
         }
 
-    def add_job(self, scanid, freqmode):
-        job = self.make_job_data(scanid, freqmode)
-        return self._post_job(job)
-
-    def _post_job(self, job):
+    def _post_jobs(self, list_of_jobs):
         return self.session.post(
             self.job_api_root + '/v4/{}/jobs'.format(self.project),
             headers={'Content-Type': "application/json"},
-            json=job, auth=(self.token, ''))
+            json=list_of_jobs, auth=(self.token, ''))
 
     def get_token(self):
         r = self.session.get(
@@ -208,30 +208,43 @@ class AddQsmrJobs(object):
                 print('  Status code %s: %d' % (k, len(status_codes[k])))
 
         status_codes = defaultdict(list)
-        i = 0
-        for i, scanid in enumerate(scanids):
-            if i < skip:
-                continue
+        list_of_jobs = self.filter_jobs(
+            scanids, freqmode, skip)
+        # split the post into several posts if list of jobs is long
+        for n_post in range(len(list_of_jobs) / NUMBER_OF_JOBS_TO_POST + 1):
             try:
-                response = self.add_job(scanid, freqmode)
+                response = self._post_jobs(
+                    list_of_jobs[
+                        n_post * NUMBER_OF_JOBS_TO_POST:
+                        (n_post + 1) * NUMBER_OF_JOBS_TO_POST])
                 status_code = response.status_code
                 if status_code == 401:
                     print('Fetching new token')
                     self.get_token()
-                    response = self.add_job(scanid, freqmode)
+                    response = self._post_jobs(
+                        list_of_jobs[
+                            n_post * NUMBER_OF_JOBS_TO_POST:
+                            (n_post + 1) * NUMBER_OF_JOBS_TO_POST])
                     status_code = response.status_code
-                status_codes[status_code].append(scanid)
+                status_codes[status_code].append(n_post)
             except Exception as err:  # pylint: disable=broad-except
                 stderr.write('Add job failed: %s\n' % err)
-                print_status(i, status_codes)
+                print_status(n_post, status_codes)
                 print(('Exiting, you can try add_jobs.py again with --skip=%s'
-                       '') % i)
+                       '') % (n_post * NUMBER_OF_JOBS_TO_POST))
                 return False
-            if not (i+1) % 10:
-                print_status(i+1, status_codes)
-        print_status(i+1, status_codes)
-        print('Done')
+            nr_of_jobs_added = min(
+                len(list_of_jobs), (n_post + 1) * NUMBER_OF_JOBS_TO_POST)
+            print_status(nr_of_jobs_added, status_codes)
         return True
+
+    def filter_jobs(self, scanids, freqmode, skip):
+        list_of_jobs = []
+        for i, scanid in enumerate(scanids):
+            if i < skip:
+                continue
+            list_of_jobs.append(self.make_job_data(scanid, freqmode))
+        return list_of_jobs
 
 
 def load_config(config_file):
