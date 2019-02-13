@@ -10,3 +10,4 @@ develop-eggs/
 dist/
 env/
 parts/
+/result.xml
