@@ -112,7 +112,9 @@ class ScanIDs(object):
             days = [(day['Date'], day['URL'], day['NumScan'])
                     for day in data['Data']
                     if day['FreqMode'] == freqmode and
-                    day['Date'] < end_day_str]
+                    datetime.strptime(
+                        day['Date'], '%a, %d %b %Y %H:%M:%S GMT'
+                    ).strftime('%Y-%m-%d') < end_day_str]
             for day in sorted(days):
                 yield day
             start_day = datetime.strptime(

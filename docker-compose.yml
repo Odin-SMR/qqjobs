@@ -4,7 +4,7 @@ odinapi:
     - PGDBNAME=odin
     - PGUSER=odinop
     - PGPASS=odinop
-  image: docker2.molflow.com/odin_redo/odin_api
+  image: docker2.molflow.com/odin_redo/odin_api:latest
   ports:
     - "127.0.0.1:5000:5000"
   volumes:
