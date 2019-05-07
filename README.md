@@ -18,6 +18,20 @@ config file and then source that file before calling the jobs generator:
 
     source config_file.conf
 
+
+## Development setup
+
+The `data/` directory comes from a different repository added as a submodule.
+
+To clone the qqjobs repository with the submodule, you can use:
+
+    git clone --recursive https://phabricator.molflow.com/source/qqjobs.git
+
+If you already cloned the repository without the submodule, or if you
+want to update the submodule:
+
+    git submodule update --init --recursive
+
 ## Installation
 
 Install the application by calling the install script:

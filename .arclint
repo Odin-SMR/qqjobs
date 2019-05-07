@@ -1,16 +1,11 @@
 {
   "linters": {
-    "python_pep8": {
+    "python": {
       "type": "pep8",
-      "include": "(\\.py$)"
-    },
-    "python_pyflakes": {
-      "type": "pyflakes",
-      "include": "(\\.py$)"
-    },
-    "python_pylint": {
-      "type": "pylint",
-      "include": "(\\.py$)"
+      "include": "(\\.py$)",
+      "severity": {
+        "W503": "disabled"
+      }
     },
     "xml": {
       "type": "xml",
@@ -18,7 +13,8 @@
     },
     "jshint": {
       "type": "jshint",
-      "include": "(\\.js$)"
+      "include": "(\\.js$)",
+      "exclude": "(\\.min.js$)"
     }
   }
 }

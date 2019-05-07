@@ -6,7 +6,6 @@ import pytest
 from jobsgenerator import qsmrjobs
 from jobsgenerator.scanids import ScanIDs
 
-from test.testbase import system
 
 PROJECT_NAME = 'testproject'
 ODIN_PROJECT = 'odinproject'
@@ -101,22 +100,24 @@ class TestProjectNameValidation(BaseTest):
 
 class BaseTestAddJobs(BaseTest):
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def jobs(self, microq_service):
+        self._apiroot = '{}/rest_api'.format(microq_service)
         self._write_config((
             'ODIN_SECRET=adsfasreerfgtres\n'
-            'ODIN_API_ROOT=http://localhost:5000/rest_api\n'
-            'JOB_API_ROOT=http://example.com\n'
+            'ODIN_API_ROOT={}/rest_api\n'.format(microq_service)
+            + 'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
             'JOB_API_PASSWORD=testpw\n'))
 
-        def mock_get_token(self):  # pylint: disable=unused-argument
-            pass
-
         self._mock_post_method = self._get_mock_post_method()
-        self._orig_post_method = qsmrjobs.AddQsmrJobs._post_jobs
-        self._orig_get_token = qsmrjobs.AddQsmrJobs.get_token
+        orig_post_method = qsmrjobs.AddQsmrJobs._post_jobs
+        orig_get_token = qsmrjobs.AddQsmrJobs.get_token
         qsmrjobs.AddQsmrJobs._post_jobs = self._mock_post_method
-        qsmrjobs.AddQsmrJobs.get_token = mock_get_token
+        qsmrjobs.AddQsmrJobs.get_token = lambda _: None
+        yield
+        qsmrjobs.AddQsmrJobs._post_jobs = orig_post_method
+        qsmrjobs.AddQsmrJobs.get_token = orig_get_token
 
     @staticmethod
     def _get_mock_post_method():
@@ -125,10 +126,6 @@ class BaseTestAddJobs(BaseTest):
             return ResponseMock(201)
         mock_post_method.jobs = []
         return mock_post_method
-
-    def tearDown(self):
-        qsmrjobs.AddQsmrJobs._post_jobs = self._orig_post_method
-        qsmrjobs.AddQsmrJobs.get_token = self._orig_get_token
 
     @staticmethod
     def _write_scanids(scanids):
@@ -154,7 +151,7 @@ class TestAddJobsFromFile(BaseTestAddJobs):
         adder = qsmrjobs.AddQsmrJobs(
             PROJECT_NAME,
             ODIN_PROJECT,
-            "http://localhost:5000/rest_api",
+            self._apiroot,
             "adsfasreerfgtres",
             "http://example.com",
             "testuser",
@@ -177,8 +174,7 @@ class TestAddJobsFromFile(BaseTestAddJobs):
         self.assertEqual(len(self._mock_post_method.jobs[0]), 15 - skip)
 
 
-@system
-@pytest.mark.usefixtures('dockercompose')
+@pytest.mark.system
 class TestAddVds(BaseTestAddJobs):
 
     def test_add_jobs(self):
@@ -191,8 +187,7 @@ class TestAddVds(BaseTestAddJobs):
         self.assertEqual(len(self._mock_post_method.jobs[0]), 1000)
 
 
-@system
-@pytest.mark.usefixtures('dockercompose')
+@pytest.mark.system
 class TestAddAll(BaseTestAddJobs):
 
     def test_add_jobs(self):
@@ -255,13 +250,12 @@ class TestJobAPIFailure(BaseTestAddJobs):
         self.assertEqual(len(self._mock_post_method.jobs[0]), 1000)
 
 
-@system
-@pytest.mark.usefixtures('dockercompose')
+@pytest.mark.system
 class TestGenerateIds(BaseTestAddJobs):
 
     def test_generate_all(self):
         """Test to generate all available scan ids for a freqmode"""
-        scanids = ScanIDs('http://localhost:5000/rest_api')
+        scanids = ScanIDs(self._apiroot)
 
         ids = list(scanids.generate_all(1))
         self.assertGreater(len(ids), 0)
@@ -269,7 +263,7 @@ class TestGenerateIds(BaseTestAddJobs):
         self.assertGreater(len(ids), len(ids2))
 
     def test_generate_vds(self):
-        scanids = ScanIDs('http://localhost:5000/rest_api')
+        scanids = ScanIDs(self._apiroot)
 
         ids = list(scanids.generate_vds(13))
         self.assertGreater(len(ids), 0)

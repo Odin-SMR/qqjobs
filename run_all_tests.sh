@@ -8,4 +8,4 @@ virtualenv --python=/usr/bin/python2.7 env
 export VIRTUAL_ENV="${PWD}/env"
 export PATH="${PWD}/env/bin:${PATH}"
 pip install -r test-requirements.txt
-py.test --runslow --runsystem --junitxml=result.xml
+py.test --runslow --runsystem --junitxml=result.xml "$@"

@@ -1,5 +1,6 @@
 -rrequirements.in
 pytest-runner
+pytest-docker
 pytest
 pylint
 pep8
