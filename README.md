@@ -1,23 +1,8 @@
 # Processing jobs generator
 
-The jobs generator is used to add a list of qsmr processing jobs to the
-microq service.
+Run `./microq_admin.sh --help` for instrucitons
 
-The application needs these environment variables to be able to communicate
-with the microq service api and to generate correct job result target urls to
-the cps api:
-
-    export JOB_API_ROOT=https://example.com/job_api
-    export JOB_API_USERNAME=<username>
-    export JOB_API_PASSWORD=<password>
-    expost ODIN_API_ROOT=https://example.com/odin_api
-    export ODIN_API_SECRET=<secret encryption key>
-
-The environment could for example be provided by adding the variables to a
-config file and then source that file before calling the jobs generator:
-
-    source config_file.conf
-
+The settings and credentials file should be located in `~/odin.cfg`
 
 ## Development setup
 
@@ -32,38 +17,9 @@ want to update the submodule:
 
     git submodule update --init --recursive
 
-## Installation
-
-Install the application by calling the install script:
-
-    ./install.sh
-
-This will install the jobs generator and its dependencies in a virtual
-environment.
-
 ## Usage
 
-The jobs generator takes these arguments:
-
-- Project name: The project name.
-- Odin project name: The project name used in the odin api.
-- Jobs file: Path to a file that lists the job ids that should be added to the
-  microq service.
-
-Example usage:
-
-    # Load environment variables
-    source config_file.conf
-    # Activate the virtual env
-    source env/bin/activate
-    # Add jobs to the queue
-    jobsgenerator project_name odin_project /path/to/scanids.txt
-
-The `scanids.txt` should contain one scan id per row:
-
-    2342353234
-    3253253534
-    ...
+See the respective service for usage, e.g. `./microq_admin.sh qsmrjobs --help`
 
 ## Resume after failure
 
@@ -74,7 +30,7 @@ It will then print this message:
 
 It is then possible to continue from the scan id that failed with:
 
-    jobsgenerator project_name odin_project /path/to/scanids.txt --skip=X
+    ./microq_admin qsmrjobs project_name odin_project /path/to/scanids.txt --skip=X
 
 ## Processing status and results
 

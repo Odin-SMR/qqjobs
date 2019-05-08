@@ -1,0 +1,7 @@
+/data
+/microq-db
+/.git
+/.tox
+/.cache
+/.pytest_cache
+*.pyc

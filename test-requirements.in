@@ -1,6 +1,7 @@
 -rrequirements.in
 pytest-runner
 pytest-docker
+pytest-coverage
 pytest
 pylint
 pep8

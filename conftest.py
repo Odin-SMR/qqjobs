@@ -1,4 +1,5 @@
 import os
+from subprocess import check_call
 
 import requests
 from requests.exceptions import RequestException
@@ -29,10 +30,17 @@ def pytest_collection_modifyitems(config, items):
                 item.add_marker(skip_system)
 
 
-def is_responsive(baseurl):
+def is_responsive(odinapi, microq):
     try:
+        # ODIN
         r = requests.get(
-            '{}/rest_api/v4/freqmode_info/2010-10-01/'.format(baseurl),
+            '{}/rest_api/v4/freqmode_info/2010-10-01/'.format(odinapi),
+            timeout=5,
+        )
+        r.raise_for_status()
+        # MICROQ
+        r = requests.get(
+            "{}/rest_api/v4/projects".format(microq),
             timeout=5,
         )
         r.raise_for_status()
@@ -50,12 +58,19 @@ def docker_compose_file(pytestconfig):
 
 
 @pytest.fixture(scope='session')
-def microq_service(docker_ip, docker_services):
-    port = docker_services.port_for('odinapi', 5000)
-    url = "http://localhost:{}".format(port)
+def odin_and_microq(docker_ip, docker_services):
+    odinport = docker_services.port_for('odinapi', 5000)
+    microqport = docker_services.port_for('microq', 5000)
+    odinurl = "http://localhost:{}".format(odinport)
+    microqurl = "http://localhost:{}".format(microqport)
     docker_services.wait_until_responsive(
         timeout=WAIT_FOR_SERVICE_TIME,
         pause=PAUSE_TIME,
-        check=lambda: is_responsive(url),
+        check=lambda: is_responsive(odinurl, microqurl),
     )
-    return url
+    return odinurl, microqurl
+
+
+@pytest.fixture(scope='session')
+def microq_admin():
+    check_call(['./build.sh', '--local'])

@@ -3,8 +3,8 @@ import unittest
 
 import pytest
 
-from jobsgenerator import qsmrjobs
-from jobsgenerator.scanids import ScanIDs
+from microq_admin.jobsgenerator import qsmrjobs
+from microq_admin.jobsgenerator.scanids import ScanIDs
 
 
 PROJECT_NAME = 'testproject'
@@ -27,12 +27,12 @@ class ResponseMock(object):
 
 class TestConfigValidation(BaseTest):
 
-    ARGS = [PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE]
+    ARGS = [PROJECT_NAME, ODIN_PROJECT]
 
     def test_missing_value(self):
         """Test missing config values"""
         self._write_config('ODIN_SECRET=adsfasree\n')
-        self.assertEqual(qsmrjobs.main(self.ARGS), 1)
+        self.assertEqual(qsmrjobs.main(self.ARGS, CONFIG_FILE), 1)
 
         self._write_config((
             'ODIN_SECRET=adsfasree\n'
@@ -40,7 +40,7 @@ class TestConfigValidation(BaseTest):
             'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
             'JOB_API_PASSWORD=\n'))
-        self.assertEqual(qsmrjobs.main(self.ARGS), 1)
+        self.assertEqual(qsmrjobs.main(self.ARGS, CONFIG_FILE), 1)
 
     def test_ok_config(self):
         """Test that ok config validates"""
@@ -50,7 +50,7 @@ class TestConfigValidation(BaseTest):
             'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
             'JOB_API_PASSWORD=testpw\n'))
-        self.assertEqual(qsmrjobs.main(self.ARGS), 0)
+        self.assertEqual(qsmrjobs.main(self.ARGS, CONFIG_FILE), 0)
 
     def test_bad_api_root(self):
         """Test bad api root url"""
@@ -60,7 +60,7 @@ class TestConfigValidation(BaseTest):
             'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
             'JOB_API_PASSWORD=testpw\n'))
-        self.assertEqual(qsmrjobs.main(self.ARGS), 1)
+        self.assertEqual(qsmrjobs.main(self.ARGS, CONFIG_FILE), 1)
 
         self._write_config((
             'ODIN_SECRET=adsfasree\n'
@@ -68,7 +68,7 @@ class TestConfigValidation(BaseTest):
             'JOB_API_ROOT=http://example.com/\n'
             'JOB_API_USERNAME=testuser\n'
             'JOB_API_PASSWORD=testpw\n'))
-        self.assertEqual(qsmrjobs.main(self.ARGS), 1)
+        self.assertEqual(qsmrjobs.main(self.ARGS, CONFIG_FILE), 1)
 
 
 class TestProjectNameValidation(BaseTest):
@@ -81,31 +81,39 @@ class TestProjectNameValidation(BaseTest):
             'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
             'JOB_API_PASSWORD=testpw\n'))
-        self.assertEqual(qsmrjobs.main(
-            ['test_project', ODIN_PROJECT, CONFIG_FILE]), 1)
-        self.assertEqual(qsmrjobs.main(
-            ['1project', ODIN_PROJECT, CONFIG_FILE]), 1)
-        self.assertEqual(qsmrjobs.main(
-            ['123', ODIN_PROJECT, CONFIG_FILE]), 1)
-        self.assertEqual(qsmrjobs.main(
-            ['', ODIN_PROJECT, CONFIG_FILE]), 1)
-        self.assertEqual(qsmrjobs.main(
-            [PROJECT_NAME, '1project', CONFIG_FILE]), 1)
+        self.assertEqual(
+            qsmrjobs.main(['test_project', ODIN_PROJECT], CONFIG_FILE), 1,
+        )
+        self.assertEqual(
+            qsmrjobs.main(['1project', ODIN_PROJECT], CONFIG_FILE), 1,
+        )
+        self.assertEqual(
+            qsmrjobs.main(['123', ODIN_PROJECT], CONFIG_FILE), 1,
+        )
+        self.assertEqual(
+            qsmrjobs.main(['', ODIN_PROJECT], CONFIG_FILE), 1,
+        )
+        self.assertEqual(
+            qsmrjobs.main([PROJECT_NAME, '1project'], CONFIG_FILE), 1,
+        )
 
-        self.assertEqual(qsmrjobs.main(
-            ['project', ODIN_PROJECT, CONFIG_FILE]), 0)
-        self.assertEqual(qsmrjobs.main(
-            ['p123', ODIN_PROJECT, CONFIG_FILE]), 0)
+        self.assertEqual(
+            qsmrjobs.main(['project', ODIN_PROJECT], CONFIG_FILE), 0,
+        )
+        self.assertEqual(
+            qsmrjobs.main(['p123', ODIN_PROJECT], CONFIG_FILE), 0,
+        )
 
 
 class BaseTestAddJobs(BaseTest):
 
     @pytest.fixture(autouse=True)
-    def jobs(self, microq_service):
-        self._apiroot = '{}/rest_api'.format(microq_service)
+    def jobs(self, odin_and_microq):
+        odinurl, microqurl = odin_and_microq
+        self._apiroot = '{}/rest_api'.format(odinurl)
         self._write_config((
             'ODIN_SECRET=adsfasreerfgtres\n'
-            'ODIN_API_ROOT={}/rest_api\n'.format(microq_service)
+            'ODIN_API_ROOT={}/rest_api\n'.format(odinurl)
             + 'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
             'JOB_API_PASSWORD=testpw\n'))
@@ -139,8 +147,9 @@ class TestAddJobsFromFile(BaseTestAddJobs):
         """Test to add jobs from a scan id file"""
         self._write_scanids(map(str, range(1500)))
         exit_code = qsmrjobs.main([
-            PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE, '--freq-mode', '1',
-            '--jobs-file', JOBS_FILE])
+            PROJECT_NAME, ODIN_PROJECT, '--freq-mode', '1', '--jobs-file',
+            JOBS_FILE,
+        ], CONFIG_FILE)
         self.assertEqual(exit_code, 0)
         self.assertEqual(len(self._mock_post_method.jobs), 2)
         self.assertEqual(len(self._mock_post_method.jobs[0]), 1000)
@@ -167,8 +176,9 @@ class TestAddJobsFromFile(BaseTestAddJobs):
         self._write_scanids(map(str, range(15)))
         skip = 6
         exit_code = qsmrjobs.main([
-            PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE, '--freq-mode', '1',
-            '--jobs-file', JOBS_FILE, '--skip', str(skip)])
+            PROJECT_NAME, ODIN_PROJECT, '--freq-mode', '1', '--jobs-file',
+            JOBS_FILE, '--skip', str(skip),
+        ], CONFIG_FILE)
         self.assertEqual(exit_code, 0)
         self.assertEqual(len(self._mock_post_method.jobs), 1)
         self.assertEqual(len(self._mock_post_method.jobs[0]), 15 - skip)
@@ -180,8 +190,8 @@ class TestAddVds(BaseTestAddJobs):
     def test_add_jobs(self):
         """Test to add all scan ids in the vds"""
         exit_code = qsmrjobs.main([
-            PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE, '--freq-mode', '13',
-            '--vds'])
+            PROJECT_NAME, ODIN_PROJECT, '--freq-mode', '13', '--vds',
+        ], CONFIG_FILE)
         self.assertEqual(exit_code, 0)
         self.assertEqual(len(self._mock_post_method.jobs), 15)
         self.assertEqual(len(self._mock_post_method.jobs[0]), 1000)
@@ -193,8 +203,9 @@ class TestAddAll(BaseTestAddJobs):
     def test_add_jobs(self):
         """Test to add all scan ids"""
         exit_code = qsmrjobs.main([
-            PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE, '--freq-mode', '1',
-            '--all', '--end-day', '2015-01-11'])
+            PROJECT_NAME, ODIN_PROJECT, '--freq-mode', '1', '--all',
+            '--end-day', '2015-01-11',
+        ], CONFIG_FILE)
         self.assertEqual(exit_code, 0)
         self.assertEqual(len(self._mock_post_method.jobs), 5)
         self.assertEqual(len(self._mock_post_method.jobs[0]), 1000)
@@ -219,8 +230,9 @@ class TestRenewToken(BaseTestAddJobs):
         """Test retry because of renewal of auth token"""
         self._write_scanids(map(str, range(15)))
         exit_code = qsmrjobs.main([
-            PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE, '--freq-mode', '1',
-            '--jobs-file', JOBS_FILE])
+            PROJECT_NAME, ODIN_PROJECT, '--freq-mode', '1', '--jobs-file',
+            JOBS_FILE,
+        ], CONFIG_FILE)
         self.assertEqual(exit_code, 0)
         self.assertEqual(len(self._mock_post_method.jobs), 1)
 
@@ -243,8 +255,9 @@ class TestJobAPIFailure(BaseTestAddJobs):
         """Test exception of post of job"""
         self._write_scanids(map(str, range(1500)))
         exit_code = qsmrjobs.main([
-            PROJECT_NAME, ODIN_PROJECT, CONFIG_FILE, '--freq-mode', '1',
-            '--jobs-file', JOBS_FILE])
+            PROJECT_NAME, ODIN_PROJECT, '--freq-mode', '1', '--jobs-file',
+            JOBS_FILE,
+        ], CONFIG_FILE)
         self.assertEqual(exit_code, 1)
         self.assertEqual(len(self._mock_post_method.jobs), 1)
         self.assertEqual(len(self._mock_post_method.jobs[0]), 1000)
