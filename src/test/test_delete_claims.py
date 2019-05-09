@@ -16,9 +16,7 @@ ODIN_PROJECT = 'myodinproject'
 WORKER = 'claimtestsworker'
 
 
-@pytest.fixture(scope='function')
-def delete_claim_projects(odin_and_microq):
-    odinurl, microqurl = odin_and_microq
+def make_config(odinurl, microqurl):
     cfg = (
         'JOB_API_ROOT={}/rest_api\n'.format(microqurl)
         + 'JOB_API_USERNAME=admin\n'
@@ -29,10 +27,8 @@ def delete_claim_projects(odin_and_microq):
     with open(CONFIG_FILE, 'w') as out:
         out.write(cfg)
 
-    jobsproject = "claimsjobsproject"
-    nojobsproject = "claimsnojobsproject"
-    config = load_config(CONFIG_FILE)
 
+def make_projects(jobsproject, nojobsproject, config):
     # No conflict with other tests
     assert not is_project(jobsproject, config)
     assert not is_project(nojobsproject, config)
@@ -41,8 +37,9 @@ def delete_claim_projects(odin_and_microq):
     assert not create_project(jobsproject, config)
     assert not create_project(nojobsproject, config)
 
-    # Create 6 Jobs
-    scanids = [str(v) for v in range(6)]
+
+def make_jobs(jobsproject, number_of_jobs=6):
+    scanids = [str(v) for v in range(number_of_jobs)]
     with open(JOBS_FILE, 'w') as out:
         out.write('\n'.join(scanids) + '\n')
     assert not jobsmain([
@@ -50,14 +47,17 @@ def delete_claim_projects(odin_and_microq):
         JOBS_FILE,
     ], CONFIG_FILE)
 
-    # Claim 3 Jobs
-    claimurl = "{}/rest_api/v4/{}/jobs/{}/claim".format(
-        microqurl, jobsproject, "{}",
+
+def claim_jobs(jobsproject, config, number_of_jobs=3):
+    claimurl = "{}/v4/{}/jobs/{}/claim".format(
+        config['JOB_API_ROOT'], jobsproject, "{}",
     )
-    fetchurl = "{}/rest_api/v4/{}/jobs/fetch".format(microqurl, jobsproject)
+    fetchurl = "{}/v4/{}/jobs/fetch".format(
+        config['JOB_API_ROOT'], jobsproject,
+    )
     auth = (config['JOB_API_USERNAME'], config['JOB_API_PASSWORD'])
-    failid = None
-    for i in range(3):
+    jobids = []
+    for _ in range(number_of_jobs):
         response = requests.get(fetchurl, auth=auth)
         response.raise_for_status()
         jobid = response.json()['Job']['JobID']
@@ -65,16 +65,34 @@ def delete_claim_projects(odin_and_microq):
             claimurl.format(jobid), auth=auth, json={'Worker': WORKER},
         )
         response.raise_for_status()
-        if i == 0:
-            failid = jobid
-    assert failid is not None
+        jobids.append(jobid)
+    return jobids
 
-    # Fail 1 Job
-    url = "{}/rest_api/v4/{}/jobs/{}/status".format(
-        microqurl, jobsproject, failid,
+
+def fail_job(jobsproject, failid, config):
+    url = "{}/v4/{}/jobs/{}/status".format(
+        config['JOB_API_ROOT'], jobsproject, failid,
     )
+    auth = (config['JOB_API_USERNAME'], config['JOB_API_PASSWORD'])
     response = requests.put(url, auth=auth, json={'Status': 'FAILED'})
     response.raise_for_status()
+
+
+@pytest.fixture(scope='function')
+def delete_claim_projects(odin_and_microq):
+
+    make_config(*odin_and_microq)
+    config = load_config(CONFIG_FILE)
+
+    jobsproject = "claimsjobsproject"
+    nojobsproject = "claimsnojobsproject"
+    make_projects(jobsproject, nojobsproject, config)
+
+    make_jobs(jobsproject)
+
+    jobids = claim_jobs(jobsproject, config)
+    assert jobids
+    fail_job(jobsproject, jobids[0], config)
 
     yield jobsproject, nojobsproject
 
@@ -131,7 +149,7 @@ def test_make_failed_available(delete_claim_projects):
 
 
 @pytest.mark.system
-def test_make_failed_and_claimed_avaialable(delete_claim_projects):
+def test_make_non_finished_avaialable(delete_claim_projects):
     project, _ = delete_claim_projects
     # Available, Claimed + Failed, Failed
     # Total of six jobs

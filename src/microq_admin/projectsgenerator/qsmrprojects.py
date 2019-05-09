@@ -1,35 +1,9 @@
-#!/usr/bin/env python2
-"""usage: qsmrprojects.py [-h] [--deadline DEADLINE]
-                           PROJECT_NAME ODIN_PROJECT PROCESSING_IMAGE_URL
-                           CONFIG_FILE
-
-Add a processing project to the microq job service.
-
-positional arguments:
-  PROJECT_NAME          Microq service project name, must only contain ascii
-                        letters and digits and start with an ascii letter
-  ODIN_PROJECT          the project name used in the odin api
-  PROCESSING_IMAGE_URL  url to the worker processing image
-  CONFIG_FILE           path to configuration file
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --deadline DEADLINE   The desired deadline of the project(yyyy-mm-dd).
-                        Default value is 10 days from now. However, this
-                        parameter is used to set the priority of the project
-                        and the actual deadline can not be guaranteed.
-
-The configuration file should contain these settings:
-JOB_API_ROOT=https://example.com/job_api
-JOB_API_USERNAME=<username>
-JOB_API_PASSWORD=<password>
-"""
 from sys import stderr
 from datetime import datetime, timedelta, date
 import argparse
 import requests
 
-from ..utils import load_config, validate_config
+from ..utils import load_config, validate_config, validate_project_name
 
 DESCRIPTION = ("Add a processing project to the microq job service.\n")
 
@@ -49,12 +23,16 @@ def make_argparser(prog):
         'the project name used in the odin api'))
     parser.add_argument('PROCESSING_IMAGE_URL', help=(
         'url to the worker processing image'))
-    parser.add_argument('--deadline', help=(
-        'The desired deadline of the project (yyyy-mm-dd).'
-        'Default value is 10 days from now. However, this parameter '
-        'is used to set the priority of the project and the actual '
-        'deadline can not be guaranteed.'),
-                        default=str(date.today() + timedelta(days=10)))
+    parser.add_argument(
+        '--deadline',
+        help=(
+            'The desired deadline of the project (yyyy-mm-dd).'
+            'Default value is 10 days from now. However, this parameter '
+            'is used to set the priority of the project and the actual '
+            'deadline can not be guaranteed.'
+        ),
+        default=str(date.today() + timedelta(days=10)),
+    )
     return parser
 
 
@@ -73,19 +51,6 @@ def is_project(project, config):
 def validate_deadline(deadline):
     """validate deadline"""
     if datetime.strptime(deadline, "%Y-%m-%d") < datetime.utcnow():
-        return False
-    return True
-
-
-def validate_project_name(project_name):
-    """Must be ascii alnum and start with letter"""
-    if not project_name:
-        return False
-    if isinstance(project_name, unicode):
-        project_name = project_name.encode('utf-8')
-    if not project_name[0].isalpha():
-        return False
-    if not project_name.isalnum():
         return False
     return True
 
@@ -114,6 +79,7 @@ def create_project(project, config, args=None):
         stderr.write((
             'Project could not be created'))
         return 1
+    return 0
 
 
 def delete_project(project, config):
@@ -131,6 +97,7 @@ def delete_project(project, config):
         response.raise_for_status()
     except requests.HTTPError:
         return 1
+    return 0
 
 
 def main(args=None, config_file=None, prog=None):
@@ -155,6 +122,3 @@ def main(args=None, config_file=None, prog=None):
         return 1
     create_project(args.PROJECT_NAME, config, args)
     return 0
-
-if __name__ == '__main__':
-    exit(main())

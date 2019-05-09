@@ -23,7 +23,7 @@ FREQMODE_TO_BACKEND = {
 }
 
 
-class ScanIDs(object):
+class ScanIDs:
     """Class for generating scanids"""
 
     FIRST_DAY = '2001-08-04'

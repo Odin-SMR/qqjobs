@@ -12,13 +12,13 @@ EPI = """A configuration file is needed and will be mounted from `~/odin.cfg`.
 {}
 """.format(CONFIG_FILE_DOCS)
 
-parser = argparse.ArgumentParser(
+_parser = argparse.ArgumentParser(
     description="""MicroQ Admin""",
     prog=PROG,
     epilog=EPI,
     formatter_class=argparse.RawDescriptionHelpFormatter,
 )
-parser.add_argument(
+_parser.add_argument(
     'SERVICE',
     help="""The service to run.
 
@@ -28,24 +28,24 @@ parser.add_argument(
 )
 
 if len(sys.argv) > 2 and not sys.argv[1].startswith('-'):
-    myargs = [sys.argv[1]]
+    _myargs = [sys.argv[1]]
 else:
-    myargs = None
+    _myargs = None
 
-args = parser.parse_args(myargs)
-service = args.SERVICE.lower().strip()
-SERVICE_ARGS_START = 2
-service_name = "{} {}".format(PROG, service)
+_args = _parser.parse_args(_myargs)
+_service = _args.SERVICE.lower().strip()
+_service_args_start = 2
+_service_name = "{} {}".format(PROG, _service)
 
-if service is None:
+if _service is None:
     exit("Failed to supply service")
 
-service_args = sys.argv[SERVICE_ARGS_START:]
-if service == 'delete-claims':
-    exit(delete_claims.main(service_args, prog=service_name))
-elif service == "qsmrjobs":
-    exit(qsmrjobs.main(service_args, prog=service_name))
-elif service == "qsmrprojects":
-    exit(qsmrprojects.main(service_args, prog=service_name))
+_service_args = sys.argv[_service_args_start:]
+if _service == 'delete-claims':
+    exit(delete_claims.main(_service_args, prog=_service_name))
+elif _service == "qsmrjobs":
+    exit(qsmrjobs.main(_service_args, prog=_service_name))
+elif _service == "qsmrprojects":
+    exit(qsmrprojects.main(_service_args, prog=_service_name))
 else:
-    exit("Invalid service '{}'".format(service))
+    exit("Invalid service '{}'".format(_service))

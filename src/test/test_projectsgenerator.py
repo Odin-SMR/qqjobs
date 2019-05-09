@@ -1,7 +1,6 @@
-"""test of qsmrprojects"""
-import unittest
-import pytest
 from datetime import timedelta, date
+
+import pytest
 
 from microq_admin.projectsgenerator import qsmrprojects
 
@@ -39,7 +38,6 @@ class TestConfigValidation:
 
     def test_ok_config(self, odin_and_microq):
         _, microqurl = odin_and_microq
-        """Test that ok config validates"""
         write_config(
             'JOB_API_ROOT={}/rest_api\n'.format(microqurl)
             + 'JOB_API_USERNAME=admin\n'

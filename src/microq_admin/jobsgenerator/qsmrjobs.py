@@ -1,45 +1,3 @@
-#!/usr/bin/env python2
-"""
-usage: qsmrjobs.py [-h] [--freq-mode FREQ_MODE] [--all]
-                   [--start-day START_DAY] [--end-day END_DAY] [--vds]
-                   [--jobs-file JOBS_FILE] [--skip SKIP]
-                   PROJECT_NAME ODIN_PROJECT CONFIG_FILE
-
-Add qsmr jobs to the microq job service.
-Choose between adding all scans in the freqmode, all scans between
-two timestamps or all scans in the vds dataset.
-If no jobs arguments are provided, the configuration and project name
-are validated.
-
-positional arguments:
-  PROJECT_NAME          Microq service project name, must only contain ascii
-                        letters and digits and start with an ascii letter
-  ODIN_PROJECT          the project name used in the odin api
-  CONFIG_FILE           path to configuration file
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --freq-mode FREQ_MODE
-                        freq mode of the jobs
-  --all                 add all scan ids for this freq mode
-  --start-day START_DAY
-                        together with --all, only add scans from this day and
-                        forward (yyyy-mm-dd)
-  --end-day END_DAY     together with --all, only add scans up to this day
-                        (yyyy-mm-dd, exclusive)
-  --vds                 add all scan ids in the vds dataset for this freq mode
-  --jobs-file JOBS_FILE
-                        add the scan ids in this file, one scan id per row
-  --skip SKIP           number of rows to skip in the jobs file
-
-The configuration file should contain these settings:
-ODIN_API_ROOT=https://example.com/odin_api
-ODIN_SECRET=<secret encryption key>
-JOB_API_ROOT=https://example.com/job_api
-JOB_API_USERNAME=<username>
-JOB_API_PASSWORD=<password>
-"""
-from __future__ import print_function
 import json
 import base64
 import argparse
@@ -50,7 +8,7 @@ import requests
 from Crypto.Cipher import AES
 
 from .scanids import ScanIDs
-from ..utils import load_config, validate_config
+from ..utils import load_config, validate_config, validate_project_name
 
 NUMBER_OF_JOBS_TO_POST = 1000
 
@@ -143,7 +101,7 @@ class JobServiceError(Exception):
     pass
 
 
-class AddQsmrJobs(object):
+class AddQsmrJobs:
     # TODO: Should use uclient
     JOB_TYPE = 'qsmr'
 
@@ -204,7 +162,7 @@ class AddQsmrJobs(object):
         list_of_jobs = self.filter_jobs(
             scanids, freqmode, skip)
         # split the post into several posts if list of jobs is long
-        for n_post in range(len(list_of_jobs) / NUMBER_OF_JOBS_TO_POST + 1):
+        for n_post in range(len(list_of_jobs) // NUMBER_OF_JOBS_TO_POST + 1):
             try:
                 response = self._post_jobs(
                     list_of_jobs[
@@ -240,19 +198,6 @@ class AddQsmrJobs(object):
         return list_of_jobs
 
 
-def validate_project_name(project_name):
-    """Must be ascii alnum and start with letter"""
-    if not project_name:
-        return False
-    if isinstance(project_name, unicode):
-        project_name = project_name.encode('utf-8')
-    if not project_name[0].isalpha():
-        return False
-    if not project_name.isalnum():
-        return False
-    return True
-
-
 def encrypt(msg, secret):
     msg = msg + ' '*(16 - (len(msg) % 16 or 16))
     cipher = AES.new(secret, AES.MODE_ECB)
@@ -265,7 +210,3 @@ def encode_level2_target_parameter(scanid, freqmode, project, secret):
     """
     data = {'ScanID': scanid, 'FreqMode': freqmode, 'Project': project}
     return encrypt(json.dumps(data), secret)
-
-
-if __name__ == '__main__':
-    exit(main())

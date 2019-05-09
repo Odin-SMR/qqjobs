@@ -20,7 +20,7 @@ class BaseTest(unittest.TestCase):
             out.write(cfg)
 
 
-class ResponseMock(object):
+class ResponseMock:
     def __init__(self, status_code):
         self.status_code = status_code
 
@@ -145,7 +145,7 @@ class TestAddJobsFromFile(BaseTestAddJobs):
 
     def test_add_jobs(self):
         """Test to add jobs from a scan id file"""
-        self._write_scanids(map(str, range(1500)))
+        self._write_scanids(list(map(str, range(1500))))
         exit_code = qsmrjobs.main([
             PROJECT_NAME, ODIN_PROJECT, '--freq-mode', '1', '--jobs-file',
             JOBS_FILE,
@@ -165,7 +165,7 @@ class TestAddJobsFromFile(BaseTestAddJobs):
             "http://example.com",
             "testuser",
             "testpw")
-        scanids = map(str, range(15))
+        scanids = list(map(str, range(15)))
         freqmode = 1
         skip = 6
         list_of_jobs = adder.filter_jobs(scanids, freqmode, skip)
@@ -173,7 +173,7 @@ class TestAddJobsFromFile(BaseTestAddJobs):
 
     def test_skip(self):
         """Test skipping of scan ids in the file"""
-        self._write_scanids(map(str, range(15)))
+        self._write_scanids(list(map(str, range(15))))
         skip = 6
         exit_code = qsmrjobs.main([
             PROJECT_NAME, ODIN_PROJECT, '--freq-mode', '1', '--jobs-file',
@@ -219,16 +219,16 @@ class TestRenewToken(BaseTestAddJobs):
             if not mock_post_method.called:
                 mock_post_method.called = True
                 return ResponseMock(401)
-            else:
-                mock_post_method.jobs.append(job)
-                return ResponseMock(201)
+            mock_post_method.jobs.append(job)
+            return ResponseMock(201)
+
         mock_post_method.jobs = []
         mock_post_method.called = False
         return mock_post_method
 
     def test_renew_token(self):
         """Test retry because of renewal of auth token"""
-        self._write_scanids(map(str, range(15)))
+        self._write_scanids(list(map(str, range(15))))
         exit_code = qsmrjobs.main([
             PROJECT_NAME, ODIN_PROJECT, '--freq-mode', '1', '--jobs-file',
             JOBS_FILE,
@@ -244,16 +244,15 @@ class TestJobAPIFailure(BaseTestAddJobs):
         def mock_post_method(self, job):  # pylint: disable=unused-argument
             if mock_post_method.jobs:
                 raise Exception('Failed!')
-            else:
-                mock_post_method.jobs.append(job)
-                return ResponseMock(201)
+            mock_post_method.jobs.append(job)
+            return ResponseMock(201)
         mock_post_method.jobs = []
         mock_post_method.called = False
         return mock_post_method
 
     def test_failure(self):
         """Test exception of post of job"""
-        self._write_scanids(map(str, range(1500)))
+        self._write_scanids(list(map(str, range(1500))))
         exit_code = qsmrjobs.main([
             PROJECT_NAME, ODIN_PROJECT, '--freq-mode', '1', '--jobs-file',
             JOBS_FILE,

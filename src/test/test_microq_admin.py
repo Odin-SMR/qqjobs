@@ -1,10 +1,11 @@
-import pytest
 from subprocess import check_output, CalledProcessError
+
+import pytest
 
 
 @pytest.mark.slow
 def test_can_get_main_help(microq_admin):
-    out = check_output(['./microq_admin.sh', '--help'])
+    out = check_output(['./microq_admin.sh', '--help']).decode('utf8')
     assert 'MicroQ Admin' in out
 
 
@@ -15,7 +16,7 @@ def test_can_get_main_help(microq_admin):
     ('qsmrprojects', 'Add a processing project to the microq job service'),
 ))
 def test_can_get_service_help(service, helptitle, microq_admin):
-    out = check_output(['./microq_admin.sh', service, '--help'])
+    out = check_output(['./microq_admin.sh', service, '--help']).decode('utf8')
     assert helptitle in out
 
 
