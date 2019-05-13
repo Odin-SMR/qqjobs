@@ -1,7 +1,10 @@
 # pylint: disable=W0212
+import base64
 import unittest
+import argparse
 
 import pytest
+from Crypto.Cipher import AES
 
 from microq_admin.jobsgenerator import qsmrjobs
 from microq_admin.jobsgenerator.scanids import ScanIDs
@@ -279,3 +282,16 @@ class TestGenerateIds(BaseTestAddJobs):
 
         ids = list(scanids.generate_vds(13))
         self.assertGreater(len(ids), 0)
+
+
+def test_encrypt_returns_string():
+    assert isinstance(qsmrjobs.encrypt('hello', 'secretsecret4242'), str)
+
+
+def test_encrypt_perserves_message():
+    secret = 'secretsecret4242'
+    payload = 'hello'
+    msg = qsmrjobs.encrypt(payload, secret)
+    cipher = AES.new(secret, AES.MODE_ECB)
+    decrypted = cipher.decrypt(base64.urlsafe_b64decode(msg.encode()))
+    assert decrypted.decode('utf8').strip() == payload
