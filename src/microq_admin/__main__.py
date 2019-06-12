@@ -24,7 +24,7 @@ _parser.add_argument(
 
     For more help on a particular service do `SERVICE --help`
     """,
-    choices=['qsmrjobs', 'qsmrprojects', 'delete-claims'],
+    choices=['qsmrjobs', 'qsmrprojects', 'delete-claims', 'delete-project'],
 )
 
 if len(sys.argv) > 2 and not sys.argv[1].startswith('-'):
@@ -47,5 +47,7 @@ elif _service == "qsmrjobs":
     exit(qsmrjobs.main(_service_args, prog=_service_name))
 elif _service == "qsmrprojects":
     exit(qsmrprojects.main(_service_args, prog=_service_name))
+elif _service == 'delete-project':
+    exit(delete_project.main(_service_args, prog=_service_name))
 else:
     exit("Invalid service '{}'".format(_service))

@@ -8,6 +8,7 @@ services:
       - PGDBNAME=odin
       - PGUSER=odinop
       - PGPASS=odinop
+      - SECRET_KEY=myseeecretzzzzzz
     image: docker2.molflow.com/odin_redo/odin_api:latest
     ports: ["5000"]
     volumes:
