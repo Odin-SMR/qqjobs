@@ -2,6 +2,7 @@ import argparse
 import sys
 
 from .tools import delete_claims
+from .tools import delete_project
 from .jobsgenerator import qsmrjobs
 from .projectsgenerator import qsmrprojects
 from .utils import CONFIG_FILE_DOCS
