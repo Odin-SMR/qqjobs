@@ -10,7 +10,8 @@ services:
       - PGPASS=odinop
       - SECRET_KEY=myseeecretzzzzzz
     image: docker2.molflow.com/odin_redo/odin_api:latest
-    ports: ["5000"]
+    ports: 
+      - 5000
     volumes:
       - ./data/vds-data:/vds-data
       - ./data/apriori:/var/lib/odindata/apriori
@@ -30,7 +31,8 @@ services:
 
   microq:
     image: docker2.molflow.com/devops/microq:latest
-    ports: ["5000"]
+    ports: 
+      - 5000
     environment:
       - USERVICE_DATABASE_URI=mysql+pymysql://testuser:secret@mysqlhost/smr
       - USERVICE_ADMIN_USER=admin
@@ -39,11 +41,9 @@ services:
       - mysqlhost
 
   mysqlhost:
-    image: mysql:5
+    build: microq-db
     environment:
       - MYSQL_ROOT_PASSWORD=empty
       - MYSQL_DATABASE=smr
       - MYSQL_USER=testuser
       - MYSQL_PASSWORD=secret
-    volumes:
-      - ./microq-db/data_dump.sql:/docker-entrypoint-initdb.d/dump.sql:ro
