@@ -10,14 +10,15 @@ services:
       - PGPASS=odinop
       - SECRET_KEY=myseeecretzzzzzz
     image: docker2.molflow.com/odin_redo/odin_api:latest
-    ports: ["5000"]
+    ports: 
+      - 5000
     volumes:
       - ./data/vds-data:/vds-data
-      - ./data/apriori:/var/lib/odindata/apriori
+      - ./data/apriori/:/var/lib/odindata/apriori/
       - ./data/vds-data/SMRhdf/Qsmr-2-1/:/odin-smr-2-1-data
-      - ./data/ptz-data/:/var/lib/odindata
+      - ./data/ptz-data/Solardata2.db:/var/lib/odindata/Solardata2.db
       - ./data/vds-data/OSIRIS_Level2/:/osiris-data
-      - ./data/ptz-data/ERA-Interim:/var/lib/odindata/ECMWF
+      - ./data/ptz-data/ERA-Interim/:/var/lib/odindata/ECMWF/
     links:
       - postgresql
       - level2db
@@ -30,7 +31,8 @@ services:
 
   microq:
     image: docker2.molflow.com/devops/microq:latest
-    ports: ["5000"]
+    ports: 
+      - 5000
     environment:
       - USERVICE_DATABASE_URI=mysql+pymysql://testuser:secret@mysqlhost/smr
       - USERVICE_ADMIN_USER=admin
@@ -39,11 +41,9 @@ services:
       - mysqlhost
 
   mysqlhost:
-    image: mysql:5
+    build: microq-db
     environment:
       - MYSQL_ROOT_PASSWORD=empty
       - MYSQL_DATABASE=smr
       - MYSQL_USER=testuser
       - MYSQL_PASSWORD=secret
-    volumes:
-      - ./microq-db/data_dump.sql:/docker-entrypoint-initdb.d/dump.sql:ro

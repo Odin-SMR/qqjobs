@@ -34,17 +34,18 @@ def is_responsive(odinapi, microq):
     try:
         # ODIN
         r = requests.get(
-            '{}/rest_api/v4/freqmode_info/2010-10-01/'.format(odinapi),
+            '{}'.format(odinapi),
             timeout=5,
         )
         r.raise_for_status()
         # MICROQ
         r = requests.get(
-            "{}/rest_api/v4/projects".format(microq),
+            "{}".format(microq),
             timeout=5,
         )
         r.raise_for_status()
-    except RequestException:
+    except RequestException as msg:
+        print(msg)
         return False
     return True
 
@@ -52,7 +53,7 @@ def is_responsive(odinapi, microq):
 @pytest.fixture(scope='session')
 def docker_compose_file(pytestconfig):
     return os.path.join(
-        os.path.dirname(__file__),
+        str(pytestconfig.rootdir),
         'docker-compose.systemtest.yml',
     )
 
@@ -61,8 +62,8 @@ def docker_compose_file(pytestconfig):
 def odin_and_microq(docker_ip, docker_services):
     odinport = docker_services.port_for('odinapi', 5000)
     microqport = docker_services.port_for('microq', 5000)
-    odinurl = "http://localhost:{}".format(odinport)
-    microqurl = "http://localhost:{}".format(microqport)
+    odinurl = "http://{}:{}".format(docker_ip, odinport)
+    microqurl = "http://{}:{}".format(docker_ip, microqport)
     docker_services.wait_until_responsive(
         timeout=WAIT_FOR_SERVICE_TIME,
         pause=PAUSE_TIME,
