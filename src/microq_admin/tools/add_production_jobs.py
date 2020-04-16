@@ -1,7 +1,6 @@
 import argparse
 from datetime import datetime, timedelta
 import requests
-import numpy as np
 
 from ..utils import load_config, validate_config
 from ..jobsgenerator.qsmrjobs import AddQsmrJobs
@@ -106,8 +105,8 @@ def get_unprocessed_scanids(
     scanids_claimed = get_scanids_from_jobids(jobids_claimed)
     scanids_available = get_level1_scans(
         urlbase_odinapi, date_start, date_end, freqmode)
-    unprocessed_scans = np.setdiff1d(scanids_available, scanids_claimed)
-    return freqmode, unprocessed_scans.tolist()
+    unprocessed_scans = list(set(scanids_available) - set(scanids_claimed))
+    return freqmode, unprocessed_scans
 
 
 def main(argv=None, config_file=None, prog=None):
