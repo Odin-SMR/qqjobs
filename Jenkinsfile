@@ -1,14 +1,18 @@
 node {
+    def qqjobsImage
     checkout scm
     stage('Build') {
-        sh "docker build -t docker2.molflow.com/devops/microq_admin ."
+        qqjobsImage = docker.build("odinsmr/microq_admin")
     }
     stage('Test') {
         sh "tox -- --runslow --runsystem"
     }
-    stage("Push") {
-        if (env.GIT_BRANCH == 'origin/master') {
-            sh "docker push docker2.molflow.com/devops/microq_admin"
-        }
+    if (env.BRANCH_NAME == 'master') {
+      stage("Push") {
+        withDockerRegistry([ credentialsId: "dockerhub-molflowbot", url: "" ]) {
+          qqjobsImage.push(env.BUILD_TAG)
+          qqjobsImage.push('latest')
+      }
     }
+  }
 }

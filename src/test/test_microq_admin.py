@@ -14,6 +14,10 @@ def test_can_get_main_help(microq_admin):
     ('delete-claims', 'Release Claim'),
     ('qsmrjobs', 'Add qsmr jobs to the microq job service'),
     ('qsmrprojects', 'Add a processing project to the microq job service'),
+    (
+        'add-production-jobs',
+        'Add jobs to the microq job service for production projects'
+    ),
 ))
 def test_can_get_service_help(service, helptitle, microq_admin):
     out = check_output(['./microq_admin.sh', service, '--help']).decode('utf8')

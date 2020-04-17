@@ -8,8 +8,7 @@ from .delete_project import InvalidConfig
 
 
 DESCRIPTION = '''
-    Add jobs to the microq job service for
-    production projects
+    Add jobs to the microq job service for production projects
 '''
 
 
@@ -109,12 +108,13 @@ def get_unprocessed_scanids(
     return freqmode, unprocessed_scans
 
 
-def main(argv=None, config_file=None, prog=None):
-    argparse.ArgumentParser(
+def main(argv=[], config_file=None, prog=None):
+    parser = argparse.ArgumentParser(
         description=DESCRIPTION,
         prog=prog,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    parser.parse_args(argv)
     config = load_config(config_file)
     if not validate_config(config):
         raise InvalidConfig('Invalid config file.')

@@ -74,4 +74,4 @@ def odin_and_microq(docker_ip, docker_services):
 
 @pytest.fixture(scope='session')
 def microq_admin():
-    check_call(['./build.sh', '--local'])
+    check_call(['./build.sh'])
