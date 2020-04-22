@@ -4,5 +4,5 @@
 #
 #    pip-compile 
 #
-pycrypto==2.6.1
+pycryptodome==3.9.7
 requests==2.12.4

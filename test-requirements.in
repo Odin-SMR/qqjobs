@@ -1,11 +1,11 @@
 -rrequirements.in
+pytest
 pytest-runner
 pytest-docker
 pytest-coverage
-pytest
 pylint
 pep8
 pyflakes
 coverage
 requests
-pycrypto
+pycryptodome
