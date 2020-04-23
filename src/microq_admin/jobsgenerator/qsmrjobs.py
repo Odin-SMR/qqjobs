@@ -200,8 +200,8 @@ class AddQsmrJobs:
 
 def encrypt(msg, secret):
     msg += ' ' * (16 - (len(msg) % 16 or 16))
-    cipher = AES.new(secret, AES.MODE_ECB)
-    return base64.urlsafe_b64encode(cipher.encrypt(msg)).decode('utf8')
+    cipher = AES.new(secret.encode(), AES.MODE_ECB)
+    return base64.urlsafe_b64encode(cipher.encrypt(msg.encode())).decode('utf8')
 
 
 def encode_level2_target_parameter(scanid, freqmode, project, secret):
