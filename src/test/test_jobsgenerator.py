@@ -292,7 +292,7 @@ def test_encrypt_perserves_message():
     secret = 'secretsecret4242'
     payload = 'hello'
     msg = qsmrjobs.encrypt(payload, secret)
-    assert msg == ''
+
     cipher = AES.new(secret.encode(), AES.MODE_ECB)
     decrypted = cipher.decrypt(base64.urlsafe_b64decode(msg.encode()))
     assert decrypted.decode('utf8').strip() == payload
