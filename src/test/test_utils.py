@@ -9,7 +9,7 @@ CONFIG_FILE = '/tmp/test_micrqadmin_utils.conf'
 def config_file():
     with open(CONFIG_FILE, 'w') as fp:
         fp.write(
-            'ODIN_SECRET=adsfasree\n'
+            'ODIN_SECRET=adsfasree==\n'
             'ODIN_API_ROOT=http://example.com\n'
             'JOB_API_ROOT=http://example2.com\n'
             'JOB_API_USERNAME=testuser\n'
@@ -21,7 +21,7 @@ def config_file():
 @pytest.fixture
 def config():
     return {
-        'ODIN_SECRET': 'adsfasree',
+        'ODIN_SECRET': 'adsfasree==',
         'ODIN_API_ROOT': 'http://example.com',
         'JOB_API_ROOT': 'http://example2.com',
         'JOB_API_USERNAME': 'testuser',

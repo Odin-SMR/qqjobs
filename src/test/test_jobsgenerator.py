@@ -1,10 +1,11 @@
 # pylint: disable=W0212
 import base64
 import unittest
-import argparse
+from io import BytesIO
 
 import pytest
 from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 
 from microq_admin.jobsgenerator import qsmrjobs
 from microq_admin.jobsgenerator.scanids import ScanIDs
@@ -14,6 +15,7 @@ PROJECT_NAME = 'testproject'
 ODIN_PROJECT = 'odinproject'
 CONFIG_FILE = '/tmp/test_qsmr_snapshot_config.conf'
 JOBS_FILE = '/tmp/test_qsmr_snapshot_jobs.txt'
+SECRET = 'rc/lY+OQYq6mvI6tCfr+tQ=='
 
 
 class BaseTest(unittest.TestCase):
@@ -34,11 +36,11 @@ class TestConfigValidation(BaseTest):
 
     def test_missing_value(self):
         """Test missing config values"""
-        self._write_config('ODIN_SECRET=adsfasree\n')
+        self._write_config(f'ODIN_SECRET={SECRET}\n')
         self.assertEqual(qsmrjobs.main(self.ARGS, CONFIG_FILE), 1)
 
         self._write_config((
-            'ODIN_SECRET=adsfasree\n'
+            f'ODIN_SECRET={SECRET}\n'
             'ODIN_API_ROOT=http://example.com\n'
             'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
@@ -48,7 +50,7 @@ class TestConfigValidation(BaseTest):
     def test_ok_config(self):
         """Test that ok config validates"""
         self._write_config((
-            'ODIN_SECRET=adsfasree\n'
+            f'ODIN_SECRET={SECRET}\n'
             'ODIN_API_ROOT=http://example.com\n'
             'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
@@ -58,7 +60,7 @@ class TestConfigValidation(BaseTest):
     def test_bad_api_root(self):
         """Test bad api root url"""
         self._write_config((
-            'ODIN_SECRET=adsfasree\n'
+            f'ODIN_SECRET={SECRET}\n'
             'ODIN_API_ROOT=example.com\n'
             'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
@@ -66,7 +68,7 @@ class TestConfigValidation(BaseTest):
         self.assertEqual(qsmrjobs.main(self.ARGS, CONFIG_FILE), 1)
 
         self._write_config((
-            'ODIN_SECRET=adsfasree\n'
+            f'ODIN_SECRET={SECRET}\n'
             'ODIN_API_ROOT=http://example.com\n'
             'JOB_API_ROOT=http://example.com/\n'
             'JOB_API_USERNAME=testuser\n'
@@ -79,7 +81,7 @@ class TestProjectNameValidation(BaseTest):
     def test_project_names(self):
         """Test bad and good project names"""
         self._write_config((
-            'ODIN_SECRET=adsfasree\n'
+            f'ODIN_SECRET={SECRET}\n'
             'ODIN_API_ROOT=http://example.com\n'
             'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
@@ -115,7 +117,7 @@ class BaseTestAddJobs(BaseTest):
         odinurl, microqurl = odin_and_microq
         self._apiroot = '{}/rest_api'.format(odinurl)
         self._write_config((
-            'ODIN_SECRET=adsfasreerfgtres\n'
+            f'ODIN_SECRET={SECRET}\n'
             'ODIN_API_ROOT={}/rest_api\n'.format(odinurl)
             + 'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
@@ -164,7 +166,7 @@ class TestAddJobsFromFile(BaseTestAddJobs):
             PROJECT_NAME,
             ODIN_PROJECT,
             self._apiroot,
-            "adsfasreerfgtres",
+            f"{SECRET}",
             "http://example.com",
             "testuser",
             "testpw")
@@ -285,14 +287,22 @@ class TestGenerateIds(BaseTestAddJobs):
 
 
 def test_encrypt_returns_string():
-    assert isinstance(qsmrjobs.encrypt('hello', 'secretsecret4242'), str)
+    secret = base64.b64encode(get_random_bytes(16)).decode("utf8")
+    assert isinstance(qsmrjobs.encrypt('hello', secret), str)
+
+
+def decode(msg, secret):
+    bytes = BytesIO()
+    bytes.write(base64.urlsafe_b64decode(msg))
+    bytes.flush()
+    bytes.seek(0)
+    nonce, tag, ciphertext = [bytes.read(x) for x in (16, 16, -1)]
+    cipher = AES.new(base64.b64decode(secret.encode()), AES.MODE_EAX, nonce)
+    return cipher.decrypt_and_verify(ciphertext, tag).decode('utf8')
 
 
 def test_encrypt_perserves_message():
-    secret = 'secretsecret4242'
+    secret = base64.b64encode(get_random_bytes(16)).decode("utf8")
     payload = 'hello'
     msg = qsmrjobs.encrypt(payload, secret)
-
-    cipher = AES.new(secret.encode(), AES.MODE_ECB)
-    decrypted = cipher.decrypt(base64.urlsafe_b64decode(msg.encode()))
-    assert decrypted.decode('utf8').strip() == payload
+    assert decode(msg, secret) == payload

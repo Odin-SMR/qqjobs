@@ -50,7 +50,7 @@ def load_config(config_file=None):
     if config_file is None:
         config_file = CONFIG_PATH
     with open(config_file) as inp:
-        conf = dict(row.strip().split('=') for row in inp if row.strip())
+        conf = dict(row.strip().split('=', 1) for row in inp if row.strip())
     for k, v in conf.items():
         conf[k] = v.strip('"')
     return conf

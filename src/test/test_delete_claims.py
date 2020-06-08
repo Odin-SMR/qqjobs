@@ -22,7 +22,7 @@ def make_config(odinurl, microqurl):
         + 'JOB_API_USERNAME=admin\n'
         'JOB_API_PASSWORD=sqrrl\n'
         'ODIN_API_ROOT={}\n'.format(odinurl)
-        + 'ODIN_SECRET=myseeecretzzzzzz\n'
+        + 'ODIN_SECRET=rc/lY+OQYq6mvI6tCfr+tQ==\n'
     )
     with open(CONFIG_FILE, 'w') as out:
         out.write(cfg)

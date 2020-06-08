@@ -269,7 +269,7 @@ def config_file(odin_and_microq):
         + 'JOB_API_USERNAME=admin\n'
         'JOB_API_PASSWORD=sqrrl\n'
         'ODIN_API_ROOT={}/rest_api\n'.format(odinurl)
-        + 'ODIN_SECRET=myseeecretzzzzzz\n'
+        + 'ODIN_SECRET=rc/lY+OQYq6mvI6tCfr+tQ==\n'
     )
     fp.write(cfg)
     fp.flush()
