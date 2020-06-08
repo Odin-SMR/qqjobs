@@ -291,7 +291,7 @@ def test_encrypt_returns_string():
     assert isinstance(qsmrjobs.encrypt('hello', secret), str)
 
 
-def decode(msg, secret):
+def encrypt(msg, secret):
     bytes = BytesIO()
     bytes.write(base64.urlsafe_b64decode(msg))
     bytes.flush()
@@ -305,4 +305,4 @@ def test_encrypt_perserves_message():
     secret = base64.b64encode(get_random_bytes(16)).decode("utf8")
     payload = 'hello'
     msg = qsmrjobs.encrypt(payload, secret)
-    assert decode(msg, secret) == payload
+    assert encrypt(msg, secret) == payload
