@@ -5,6 +5,7 @@ import requests
 import tempfile
 import pytest
 
+from .utils import SECRET_KEY
 from microq_admin.tools import add_production_jobs
 from microq_admin.projectsgenerator.qsmrprojects import (
     create_project, delete_project, is_project
@@ -269,7 +270,7 @@ def config_file(odin_and_microq):
         + 'JOB_API_USERNAME=admin\n'
         'JOB_API_PASSWORD=sqrrl\n'
         'ODIN_API_ROOT={}/rest_api\n'.format(odinurl)
-        + 'ODIN_SECRET=rc/lY+OQYq6mvI6tCfr+tQ==\n'
+        + f'ODIN_SECRET={SECRET_KEY}\n'
     )
     fp.write(cfg)
     fp.flush()

@@ -7,6 +7,7 @@ import pytest
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 
+from .utils import SECRET_KEY
 from microq_admin.jobsgenerator import qsmrjobs
 from microq_admin.jobsgenerator.scanids import ScanIDs
 
@@ -15,7 +16,6 @@ PROJECT_NAME = 'testproject'
 ODIN_PROJECT = 'odinproject'
 CONFIG_FILE = '/tmp/test_qsmr_snapshot_config.conf'
 JOBS_FILE = '/tmp/test_qsmr_snapshot_jobs.txt'
-SECRET = 'rc/lY+OQYq6mvI6tCfr+tQ=='
 
 
 class BaseTest(unittest.TestCase):
@@ -36,11 +36,11 @@ class TestConfigValidation(BaseTest):
 
     def test_missing_value(self):
         """Test missing config values"""
-        self._write_config(f'ODIN_SECRET={SECRET}\n')
+        self._write_config(f'ODIN_SECRET={SECRET_KEY}\n')
         self.assertEqual(qsmrjobs.main(self.ARGS, CONFIG_FILE), 1)
 
         self._write_config((
-            f'ODIN_SECRET={SECRET}\n'
+            f'ODIN_SECRET={SECRET_KEY}\n'
             'ODIN_API_ROOT=http://example.com\n'
             'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
@@ -50,7 +50,7 @@ class TestConfigValidation(BaseTest):
     def test_ok_config(self):
         """Test that ok config validates"""
         self._write_config((
-            f'ODIN_SECRET={SECRET}\n'
+            f'ODIN_SECRET={SECRET_KEY}\n'
             'ODIN_API_ROOT=http://example.com\n'
             'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
@@ -60,7 +60,7 @@ class TestConfigValidation(BaseTest):
     def test_bad_api_root(self):
         """Test bad api root url"""
         self._write_config((
-            f'ODIN_SECRET={SECRET}\n'
+            f'ODIN_SECRET={SECRET_KEY}\n'
             'ODIN_API_ROOT=example.com\n'
             'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
@@ -68,7 +68,7 @@ class TestConfigValidation(BaseTest):
         self.assertEqual(qsmrjobs.main(self.ARGS, CONFIG_FILE), 1)
 
         self._write_config((
-            f'ODIN_SECRET={SECRET}\n'
+            f'ODIN_SECRET={SECRET_KEY}\n'
             'ODIN_API_ROOT=http://example.com\n'
             'JOB_API_ROOT=http://example.com/\n'
             'JOB_API_USERNAME=testuser\n'
@@ -81,7 +81,7 @@ class TestProjectNameValidation(BaseTest):
     def test_project_names(self):
         """Test bad and good project names"""
         self._write_config((
-            f'ODIN_SECRET={SECRET}\n'
+            f'ODIN_SECRET={SECRET_KEY}\n'
             'ODIN_API_ROOT=http://example.com\n'
             'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
@@ -117,7 +117,7 @@ class BaseTestAddJobs(BaseTest):
         odinurl, microqurl = odin_and_microq
         self._apiroot = '{}/rest_api'.format(odinurl)
         self._write_config((
-            f'ODIN_SECRET={SECRET}\n'
+            f'ODIN_SECRET={SECRET_KEY}\n'
             'ODIN_API_ROOT={}/rest_api\n'.format(odinurl)
             + 'JOB_API_ROOT=http://example.com\n'
             'JOB_API_USERNAME=testuser\n'
@@ -166,7 +166,7 @@ class TestAddJobsFromFile(BaseTestAddJobs):
             PROJECT_NAME,
             ODIN_PROJECT,
             self._apiroot,
-            f"{SECRET}",
+            f"{SECRET_KEY}",
             "http://example.com",
             "testuser",
             "testpw")
