@@ -2,6 +2,8 @@ import pytest
 import requests
 import json
 from datetime import date, timedelta
+
+from .utils import SECRET_KEY
 from microq_admin.utils import load_config
 from microq_admin.projectsgenerator.qsmrprojects import (
     main as create_project_main
@@ -11,7 +13,6 @@ from microq_admin.jobsgenerator.qsmrjobs import (
 )
 from microq_admin.tools.delete_project import (
     main as delete_project_data_main,
-    get_odin_project_name,
     delete_uservice_project,
     BadProjectError
 )
@@ -29,7 +30,7 @@ def make_config(odinurl, microqurl):
         + 'JOB_API_USERNAME=admin\n'
         'JOB_API_PASSWORD=sqrrl\n'
         'ODIN_API_ROOT={}/rest_api\n'.format(odinurl)
-        + 'ODIN_SECRET=myseeecretzzzzzz\n'
+        + f'ODIN_SECRET={SECRET_KEY}\n'
     )
     with open(CONFIG_FILE, 'w') as out:
         out.write(cfg)

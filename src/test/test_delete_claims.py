@@ -1,6 +1,7 @@
 import pytest
 import requests
 
+from .utils import SECRET_KEY
 from microq_admin.utils import load_config
 from microq_admin.tools import delete_claims
 from microq_admin.projectsgenerator.qsmrprojects import (
@@ -22,7 +23,7 @@ def make_config(odinurl, microqurl):
         + 'JOB_API_USERNAME=admin\n'
         'JOB_API_PASSWORD=sqrrl\n'
         'ODIN_API_ROOT={}\n'.format(odinurl)
-        + 'ODIN_SECRET=myseeecretzzzzzz\n'
+        + f'ODIN_SECRET={SECRET_KEY}\n'
     )
     with open(CONFIG_FILE, 'w') as out:
         out.write(cfg)
