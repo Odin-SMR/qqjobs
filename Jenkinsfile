@@ -5,7 +5,7 @@ node {
         qqjobsImage = docker.build("odinsmr/microq_admin")
     }
     stage('Test') {
-        sh "tox -- --runslow --runsystem"
+        sh "tox -r -- --runslow --runsystem"
     }
     if (env.BRANCH_NAME == 'master') {
       stage("Push") {
