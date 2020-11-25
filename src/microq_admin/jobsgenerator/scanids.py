@@ -99,7 +99,6 @@ class ScanIDs:
         Yields:
           str: Day (%Y-%m-%d).
         """
-        end_day_str = end_day.strftime('%Y-%m-%d')
         while start_day < end_day:
             resp = requests.get(
                 self.odin_api_root + (
@@ -109,12 +108,13 @@ class ScanIDs:
                         day=start_day.day, nrdays=step_size))
             assert resp.status_code == 200
             data = resp.json()
-            days = [(day['Date'], day['URL'], day['NumScan'])
-                    for day in data['Data']
-                    if day['FreqMode'] == freqmode and
-                    datetime.strptime(
-                        day['Date'], '%a, %d %b %Y %H:%M:%S GMT'
-                    ).strftime('%Y-%m-%d') < end_day_str]
+            days = [
+                (day['Date'], day['URL'], day['NumScan'])
+                for day in data['Data']
+                if day['FreqMode'] == freqmode and
+                datetime.strptime(day['Date'], '%Y-%m-%d')
+                < end_day
+            ]
             for day in sorted(days):
                 yield day
             start_day = datetime.strptime(
