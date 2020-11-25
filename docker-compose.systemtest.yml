@@ -30,7 +30,7 @@ services:
     image: mongo
 
   microq:
-    image: docker2.molflow.com/devops/microq:latest
+    image: odinsmr/microq:latest
     ports: 
       - 5000
     environment:
