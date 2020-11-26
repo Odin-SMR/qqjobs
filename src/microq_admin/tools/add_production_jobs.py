@@ -15,6 +15,33 @@ DESCRIPTION = '''
 FIRST_DATE_TO_PROCESS = '2019-08-01'
 
 
+def validate_content_length(response):
+    # Check that we have read all the data as the requests library
+    # does not currently enforce this.
+    expected_length = response.headers.get('Content-Length')
+    if expected_length is not None:
+        actual_length = response.raw.tell()
+        expected_length = int(expected_length)
+        if actual_length < expected_length:
+            return False
+    return True
+
+
+def get(url, params, enforce_content_length):
+    counter = 0
+    valid = False
+    while counter < 2:
+        r = requests.get(url, params=params)
+        if r.status_code == requests.status_codes.codes.ok:
+            valid = True
+        if enforce_content_length:
+            valid = validate_content_length(r)
+        if valid is True:
+            return True, r
+        counter += 1
+    return valid, r
+
+
 def get_level2_projects(urlbase_odinapi):
     url = f'{urlbase_odinapi}/v5/level2/projects'
     return requests.get(url).json()['Data']
@@ -26,7 +53,13 @@ def get_latest_date_to_process(urlbase_odinapi):
     return datetime.strptime(date, '%Y-%m-%d').date()
 
 
-def get_level1_scans(urlbase_odinapi, date_start, date_end, freqmode):
+def get_level1_scans(
+    urlbase_odinapi,
+    date_start,
+    date_end,
+    freqmode,
+    enforce_content_length=True
+):
     scanids = []
     url = f'{urlbase_odinapi}/v5/level1/{freqmode}/scans'
     while date_start < date_end:
@@ -34,9 +67,10 @@ def get_level1_scans(urlbase_odinapi, date_start, date_end, freqmode):
             'start_time': date_start.strftime('%Y-%m-%d'),
             'end_time': (date_start + timedelta(days=1)).strftime('%Y-%m-%d'),
         }
-        r = requests.get(url, params=params)
-        for scan in r.json()['Data']:
-            scanids.append(scan['ScanID'])
+        valid, r = get(url, params, enforce_content_length)
+        if valid is True:
+            for scan in r.json()['Data']:
+                scanids.append(scan['ScanID'])
         date_start += timedelta(days=1)
     return scanids
 
@@ -47,7 +81,12 @@ def get_processing_projects(urlbase_uservice):
     return projects
 
 
-def get_claimed_jobs(urlbase_uservice, project, date_start):
+def get_claimed_jobs(
+    urlbase_uservice,
+    project,
+    date_start,
+    enforce_content_length=True
+):
     url = f'{urlbase_uservice}/v4/{project}/jobs'
     date_end = datetime.utcnow().date()
     ids = []
@@ -59,9 +98,10 @@ def get_claimed_jobs(urlbase_uservice, project, date_start):
                 date_start + timedelta(days=1)
             ).strftime('%Y-%m-%dT00:00:00'),
         }
-        r = requests.get(url, params=params)
-        for job in r.json()['Jobs']:
-            ids.append(job['Id'])
+        valid, r = get(url, params, enforce_content_length)
+        if valid is True:
+            for job in r.json()['Jobs']:
+                ids.append(job['Id'])
         date_start += timedelta(days=1)
     return ids
 
