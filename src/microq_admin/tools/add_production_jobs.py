@@ -29,17 +29,17 @@ def validate_content_length(response):
 
 def get(url, params, enforce_content_length):
     counter = 0
-    valid = False
+    is_valid = False
     while counter < 2:
         r = requests.get(url, params=params)
         if r.status_code == requests.status_codes.codes.ok:
-            valid = True
-        if valid is True and enforce_content_length is True:
-            valid = validate_content_length(r)
-        if valid is True:
+            is_valid = True
+        if is_valid and enforce_content_length:
+            is_valid = validate_content_length(r)
+        if is_valid:
             return True, r
         counter += 1
-    return valid, r
+    return is_valid, r
 
 
 def get_level2_projects(urlbase_odinapi):
@@ -67,8 +67,8 @@ def get_level1_scans(
             'start_time': date_start.strftime('%Y-%m-%d'),
             'end_time': (date_start + timedelta(days=1)).strftime('%Y-%m-%d'),
         }
-        valid, r = get(url, params, enforce_content_length)
-        if valid is True:
+        is_valid, r = get(url, params, enforce_content_length)
+        if is_valid:
             for scan in r.json()['Data']:
                 scanids.append(scan['ScanID'])
         date_start += timedelta(days=1)
@@ -98,8 +98,8 @@ def get_claimed_jobs(
                 date_start + timedelta(days=1)
             ).strftime('%Y-%m-%dT00:00:00'),
         }
-        valid, r = get(url, params, enforce_content_length)
-        if valid is True:
+        is_valid, r = get(url, params, enforce_content_length)
+        if is_valid:
             for job in r.json()['Jobs']:
                 ids.append(job['Id'])
         date_start += timedelta(days=1)
