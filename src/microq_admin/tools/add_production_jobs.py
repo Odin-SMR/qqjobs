@@ -32,7 +32,7 @@ def get(url, params, enforce_content_length):
     is_valid = False
     while counter < 2:
         r = requests.get(url, params=params)
-        if r.status_code == requests.status_codes.codes.ok:
+        if r.ok:
             is_valid = True
         if is_valid and enforce_content_length:
             is_valid = validate_content_length(r)

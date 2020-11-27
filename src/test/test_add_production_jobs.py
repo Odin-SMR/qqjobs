@@ -16,7 +16,7 @@ from microq_admin.jobsgenerator.qsmrjobs import (
 )
 
 
-RESPONSE = namedtuple('response', 'json status_code')
+RESPONSE = namedtuple('response', 'json ok')
 
 
 URLBASE_ODINAPI = 'http://odin.rss.chalmers.se/rest_api'
@@ -49,7 +49,7 @@ def claimed_scans():
 
 @patch(
     'requests.get',
-    return_value=RESPONSE(json={}, status_code=400)
+    return_value=RESPONSE(json={}, ok=False)
 )
 def test_get_returns_unvalid(patched_get):
     valid, _ = add_production_jobs.get("dummyurl", {}, False)
@@ -58,7 +58,7 @@ def test_get_returns_unvalid(patched_get):
 
 @patch(
     'requests.get',
-    return_value=RESPONSE(json={}, status_code=200)
+    return_value=RESPONSE(json={}, ok=True)
 )
 def test_get_returns_valid(patched_get):
     valid, _ = add_production_jobs.get("dummyurl", {}, False)
@@ -71,7 +71,7 @@ def test_get_returns_valid(patched_get):
 )
 @patch(
     'requests.get',
-    return_value=RESPONSE(json={}, status_code=200)
+    return_value=RESPONSE(json={}, ok=True)
 )
 def test_get_returns_valid_content_length(
     patched_get, patched_validate_content_length
@@ -86,7 +86,7 @@ def test_get_returns_valid_content_length(
 )
 @patch(
     'requests.get',
-    return_value=RESPONSE(json={}, status_code=200)
+    return_value=RESPONSE(json={}, ok=True)
 )
 def test_get_returns_valid_content_length(
     patched_get, patched_validate_content_length
@@ -124,7 +124,7 @@ def test_get_matching_projects(
 
 @patch(
     'requests.get',
-    return_value=RESPONSE(json=level2_projects, status_code=200)
+    return_value=RESPONSE(json=level2_projects, ok=True)
 )
 def test_get_level2_projects(mocked_requests):
     projects = add_production_jobs.get_level2_projects(URLBASE_ODINAPI)
@@ -135,7 +135,7 @@ def test_get_level2_projects(mocked_requests):
 
 @patch(
     'requests.get',
-    return_value=RESPONSE(json=processing_projects, status_code=200)
+    return_value=RESPONSE(json=processing_projects, ok=True)
 )
 def test_get_processing_projects(mocked_requests):
     projects = add_production_jobs.get_processing_projects(
@@ -147,7 +147,7 @@ def test_get_processing_projects(mocked_requests):
 
 @patch(
     'requests.get',
-    return_value=RESPONSE(json=latest_date, status_code=200)
+    return_value=RESPONSE(json=latest_date, ok=True)
 )
 def test_get_latest_date_to_process(mocked_requests):
     latest_date = add_production_jobs.get_latest_date_to_process(
@@ -159,7 +159,7 @@ def test_get_latest_date_to_process(mocked_requests):
 
 @patch(
     'requests.get',
-    return_value=RESPONSE(json=level1_scans, status_code=200)
+    return_value=RESPONSE(json=level1_scans, ok=True)
 )
 def test_get_level1_scans_single_date(mocked_requests):
     date_start = date(2000, 1, 1)
@@ -181,7 +181,7 @@ def test_get_level1_scans_single_date(mocked_requests):
 
 @patch(
     'requests.get',
-    return_value=RESPONSE(json=level1_scans, status_code=200)
+    return_value=RESPONSE(json=level1_scans, ok=True)
 )
 def test_get_level1_scans_mutliple_dates(mocked_requests):
     date_start = date(2000, 1, 1)
@@ -203,7 +203,7 @@ def test_get_level1_scans_mutliple_dates(mocked_requests):
 
 @patch(
     'requests.get',
-    return_value=RESPONSE(json=claimed_scans, status_code=200)
+    return_value=RESPONSE(json=claimed_scans, ok=True)
 )
 def test_get_claimed_jobs(mocked_requests):
     project = 'p1'
