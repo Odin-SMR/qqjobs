@@ -34,7 +34,7 @@ def get(url, params, enforce_content_length):
         r = requests.get(url, params=params)
         if r.status_code == requests.status_codes.codes.ok:
             valid = True
-        if enforce_content_length:
+        if valid is True and enforce_content_length is True:
             valid = validate_content_length(r)
         if valid is True:
             return True, r
