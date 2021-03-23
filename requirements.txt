@@ -9,4 +9,4 @@ chardet==3.0.4            # via requests
 idna==2.10                # via requests
 pycryptodome==3.9.9       # via -r requirements.in
 requests==2.25.0          # via -r requirements.in
-urllib3==1.26.2           # via requests
+urllib3==1.26.3           # via requests

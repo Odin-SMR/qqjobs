@@ -12,7 +12,7 @@ certifi==2020.11.8        # via requests
 cffi==1.14.4              # via bcrypt, cryptography, pynacl
 chardet==3.0.4            # via requests
 coverage==5.3             # via -r test-requirements.in, pytest-cov
-cryptography==3.2.1       # via paramiko
+cryptography==3.3.2       # via paramiko
 distro==1.5.0             # via docker-compose
 docker-compose==1.27.4    # via pytest-docker
 docker[ssh]==4.4.0        # via docker-compose
@@ -48,7 +48,7 @@ requests==2.25.0          # via -r requirements.in, -r test-requirements.in, doc
 six==1.15.0               # via astroid, bcrypt, cryptography, docker, dockerpty, jsonschema, packaging, pynacl, websocket-client
 texttable==1.6.3          # via docker-compose
 toml==0.10.2              # via pylint, pytest
-urllib3==1.26.2           # via requests
+urllib3==1.26.3           # via requests
 websocket-client==0.57.0  # via docker, docker-compose
 wrapt==1.12.1             # via astroid
 
