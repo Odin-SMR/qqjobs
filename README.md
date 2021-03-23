@@ -10,7 +10,7 @@ The `data/` directory comes from a different repository added as a submodule.
 
 To clone the qqjobs repository with the submodule, you can use:
 
-    git clone --recursive https://phabricator.molflow.com/source/qqjobs.git
+    git clone --recursive https://github.com/Odin-SMR/qqjobs.git
 
 If you already cloned the repository without the submodule, or if you
 want to update the submodule:
