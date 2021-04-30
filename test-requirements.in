@@ -1,5 +1,6 @@
 -rrequirements.in
-pytest>=6.2.3
+py>=1.10.0
+pytest
 pytest-runner
 pytest-docker
 pytest-coverage
