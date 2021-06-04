@@ -1,8 +1,8 @@
 # Processing jobs generator
 
-Run `./microq_admin.sh --help` for instrucitons
+Run `./microq_admin.sh --help` for instrucitons.
 
-The settings and credentials file should be located in `~/odin.cfg`
+The settings and credentials file should be located in `~/odin.cfg`.
 
 ## Development setup
 
@@ -19,7 +19,7 @@ want to update the submodule:
 
 ## Usage
 
-See the respective service for usage, e.g. `./microq_admin.sh qsmrjobs --help`
+See the respective service for usage, e.g. `./microq_admin.sh qsmrjobs --help`.
 
 ## Resume after failure
 
