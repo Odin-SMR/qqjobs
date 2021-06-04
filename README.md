@@ -1,8 +1,8 @@
 # Processing jobs generator
 
-Run `./microq_admin.sh --help` for instrucitons
+Run `./microq_admin.sh --help` for instrucitons.
 
-The settings and credentials file should be located in `~/odin.cfg`
+The settings and credentials file should be located in `~/odin.cfg`.
 
 ## Development setup
 
