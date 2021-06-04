@@ -19,7 +19,7 @@ want to update the submodule:
 
 ## Usage
 
-See the respective service for usage, e.g. `./microq_admin.sh qsmrjobs --help`
+See the respective service for usage, e.g. `./microq_admin.sh qsmrjobs --help`.
 
 ## Resume after failure
 
