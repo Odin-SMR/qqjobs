@@ -75,3 +75,14 @@ def odin_and_microq(docker_ip, docker_services):
 @pytest.fixture(scope='session')
 def microq_admin():
     check_call(['./build.sh'])
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "slow: mark test as slow, use --runslow to run",
+    )
+    config.addinivalue_line(
+        "markers",
+        "system: mark test as system, use --runsystem to run",
+    )
